@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Store — Top Up & Digital Product</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            50: '#f0f7ff',
+                            100: '#e0f0fe',
+                            200: '#bae3ff',
+                            300: '#7ccbfd',
+                            400: '#36b2fa',
+                            500: '#0c96eb',
+                            600: '#0077c8',
+                            700: '#025fa2',
+                            800: '#065186',
+                            900: '#0b436f',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f0f7ff; }
+        ::-webkit-scrollbar-thumb { background: #bae3ff; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #36b2fa; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .soft-shadow {
+            box-shadow: 0 10px 25px -3px rgba(12, 150, 235, 0.1), 0 4px 6px -2px rgba(186, 227, 255, 0.15);
+        }
+
+        .pastel-gradient-bg {
+            background: linear-gradient(135deg, #36b2fa 0%, #0c96eb 50%, #025fa2 100%);
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(240,247,255,0.95) 100%);
+        }
+
+        .modal-overlay {
+            background: rgba(11, 67, 111, 0.4);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-200 selection:text-sky-900">
+
+    <!-- Header -->
+    <header class="gradient-header border-b border-sky-200/80 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="safeCheckAuthAndSwitch('buyer-home')">
+                <div id="headerLogoContainer" class="w-10 h-10 rounded-2xl pastel-gradient-bg text-white flex items-center justify-center font-bold text-base shadow-md group-hover:scale-105 transition-transform overflow-hidden border-2 border-white">
+                    <span id="headerLogoIcon"><i class="fa-solid fa-store"></i></span>
+                </div>
+                <div>
+                    <h1 id="headerStoreName" class="font-black text-slate-900 text-sm md:text-base leading-tight bg-gradient-to-r from-sky-700 to-indigo-600 bg-clip-text text-transparent">Chat Store</h1>
+                    <p class="text-[9px] md:text-[10px] text-sky-700 font-bold tracking-wide flex items-center gap-1">✨ Top Up & Digital Product <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span></p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav -->
+            <div id="desktopNav" class="hidden md:flex items-center space-x-1 bg-sky-50 p-1 rounded-2xl border border-sky-200">
+                <button onclick="safeCheckAuthAndSwitch('buyer-home')" id="dnav-home" class="px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 hover:bg-white transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-house"></i> Beranda
+                </button>
+                <button onclick="safeCheckAuthAndSwitch('buyer-catalog')" id="dnav-catalog" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-700 hover:bg-white transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-bag-shopping"></i> Produk
+                </button>
+                <button onclick="safeCheckAuthAndSwitch('buyer-orders')" id="dnav-orders" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-700 hover:bg-white transition-all flex items-center gap-1.5 relative">
+                    <i class="fa-solid fa-receipt"></i> Pesanan
+                    <span id="desktopOrderBadge" class="bg-sky-600 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+                </button>
+                <button onclick="safeCheckAuthAndSwitch('buyer-account')" id="dnav-account" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-700 hover:bg-white transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-user"></i> Akun
+                </button>
+            </div>
+
+            <!-- Owner Mode Button -->
+            <div class="flex items-center space-x-2">
+                <button id="modeToggleBtn" onclick="toggleOwnerMode()" class="px-3 py-2 text-xs font-extrabold bg-sky-100 hover:bg-sky-200 text-sky-900 rounded-2xl transition-all flex items-center gap-1.5 shadow-sm border border-sky-300 cursor-pointer">
+                    <i class="fa-solid fa-user-shield text-sky-700"></i>
+                    <span id="modeToggleText">Panel Owner</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Modal Container -->
+    <div id="customModalContainer" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+        <div id="customModalBox" class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-sky-100 text-center space-y-4 fade-in">
+            <div id="customModalIcon" class="w-12 h-12 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-inner">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 id="customModalTitle" class="font-black text-slate-900 text-base">Konfirmasi</h3>
+            <p id="customModalText" class="text-xs text-slate-600">Apakah kamu yakin?</p>
+            <div class="flex gap-2 pt-2">
+                <button id="customModalCancel" onclick="closeCustomModal(false)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer">Batal</button>
+                <button id="customModalConfirm" onclick="closeCustomModal(true)" class="flex-1 pastel-gradient-bg text-white py-2.5 rounded-2xl text-xs font-bold shadow-md transition-all cursor-pointer">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main id="appContainer" class="flex-1 max-w-4xl w-full mx-auto pb-28 md:pb-12 pt-4 px-3 md:px-4">
+        <!-- Dynamic Views -->
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav id="buyerBottomNav" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-sky-200 shadow-2xl py-2 px-6 z-30 max-w-md mx-auto md:hidden rounded-t-3xl">
+        <div class="flex justify-around items-center">
+            <button onclick="safeCheckAuthAndSwitch('buyer-home')" id="nav-home" class="flex flex-col items-center text-[10px] font-bold text-sky-700 transition-colors">
+                <div class="p-1.5 rounded-xl bg-sky-100 mb-0.5 shadow-sm"><i class="fa-solid fa-house text-sm"></i></div>
+                <span>Beranda</span>
+            </button>
+            <button onclick="safeCheckAuthAndSwitch('buyer-catalog')" id="nav-catalog" class="flex flex-col items-center text-[10px] font-medium text-slate-400 hover:text-sky-700 transition-colors">
+                <div class="p-1.5 rounded-xl hover:bg-sky-50 mb-0.5"><i class="fa-solid fa-bag-shopping text-sm"></i></div>
+                <span>Produk</span>
+            </button>
+            <button onclick="safeCheckAuthAndSwitch('buyer-orders')" id="nav-orders" class="flex flex-col items-center text-[10px] font-medium text-slate-400 hover:text-sky-700 transition-colors relative">
+                <div class="p-1.5 rounded-xl hover:bg-sky-50 mb-0.5"><i class="fa-solid fa-receipt text-sm"></i></div>
+                <span>Pesanan</span>
+                <span id="orderBadge" class="absolute -top-0.5 right-1 bg-sky-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden shadow-sm">0</span>
+            </button>
+            <button onclick="safeCheckAuthAndSwitch('buyer-account')" id="nav-account" class="flex flex-col items-center text-[10px] font-medium text-slate-400 hover:text-sky-700 transition-colors">
+                <div class="p-1.5 rounded-xl hover:bg-sky-50 mb-0.5"><i class="fa-solid fa-user text-sm"></i></div>
+                <span>Akun</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // Safe LocalStorage wrapper
+        const Storage = {
+            get(key, fallback) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : fallback;
+                } catch(e) {
+                    return fallback;
+                }
+            },
+            set(key, val) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(val));
+                } catch(e) {
+                    console.warn('Storage quota or restriction error:', e);
+                }
+            }
+        };
+
+        const DEFAULT_SETTINGS = {
+            storeName: "Chat Store ✨",
+            storeLogo: "", 
+            ownerName: "Owner Store",
+            ownerPhone: "6281234567890",
+            bannerTitle: "Top Up Game & Apps Only QRIS Style! 🎮💙",
+            bannerSub: "Proses cepat, aman 100%, & bergaransi 24 Jam!",
+            paymentMethods: ["QRIS"],
+            qrisImage: "https://placehold.co/400x400/e0f0fe/025fa2?text=QRIS+CHAT+STORE",
+            orderFormatTemplate: "✨ CHAT STORE — DETAIL PESANAN ✨\n\nID Pesanan: [ID_PESANAN]\nNama Pembeli: [NAMA_PEMBELI]\nProduk: [NAMA_PRODUK]\nVarian: [VARIAN]\nJumlah: [JUMLAH]\nTotal: Rp[TOTAL]\nMetode Pembayaran: [METODE]\nStatus: [STATUS]\nTanggal: [TANGGAL]\n\nMohon segera diproses ya Kak! Terima kasih 💙"
+        };
+
+        const DEFAULT_PRODUCTS = [
+            {
+                id: "p1",
+                name: "Roblox Robux Instant",
+                category: "Game",
+                price: 12000,
+                stock: 25,
+                status: "active",
+                label: "Terlaris 🔥",
+                image: "https://placehold.co/400x400/e0f0fe/025fa2?text=Roblox+Robux",
+                description: "Robux legal 100% aman anti ban. Proses cepat via gift/gamepass.",
+                variants: [
+                    { name: "80 Robux", price: 12000, stock: 15 },
+                    { name: "170 Robux", price: 22000, stock: 10 }
+                ]
+            },
+            {
+                id: "p2",
+                name: "Netflix Premium UHD",
+                category: "Streaming App",
+                price: 25000,
+                stock: 12,
+                status: "active",
+                label: "Hot 🌟",
+                image: "https://placehold.co/400x400/e0f0fe/025fa2?text=Netflix+UHD",
+                description: "Akun Netflix Premium kualitas 4K UHD anti lag & legal.",
+                variants: [
+                    { name: "Sharing 1 Bulan", price: 25000, stock: 8 },
+                    { name: "Private 1 Bulan", price: 110000, stock: 4 }
+                ]
+            },
+            {
+                id: "p3",
+                name: "Canva Pro Individual",
+                category: "Editing App",
+                price: 10000,
+                stock: 20,
+                status: "active",
+                label: "Populer",
+                image: "https://placehold.co/400x400/e0f0fe/025fa2?text=Canva+Pro",
+                description: "Akses Canva Pro full fitur desain, font premium, & hapus background.",
+                variants: [
+                    { name: "1 Bulan Member", price: 10000, stock: 10 },
+                    { name: "1 Tahun Member", price: 35000, stock: 10 }
+                ]
+            },
+            {
+                id: "p4",
+                name: "YouTube Premium 1 Bulan",
+                category: "Other App",
+                price: 15000,
+                stock: 18,
+                status: "active",
+                label: "Hemat ✨",
+                image: "https://placehold.co/400x400/e0f0fe/025fa2?text=YouTube+Premium",
+                description: "YouTube & YouTube Music tanpa iklan resmi garansi full.",
+                variants: [
+                    { name: "1 Bulan Plan", price: 15000, stock: 18 }
+                ]
+            }
+        ];
+
+        // Auto login demo user if not logged in, so all buttons & UI are instantly visible!
+        let savedCustomer = Storage.get('chatstore_current_customer', { fullName: "Tamu Chat Store", phone: "62812345678", username: "guest" });
+
+        let appState = {
+            currentView: 'buyer-home',
+            isOwnerMode: false,
+            ownerLoggedIn: false,
+            customerUser: savedCustomer,
+            selectedCategory: 'Semua',
+            searchQuery: '',
+            activeProductId: null,
+            activeOrderId: null,
+            checkoutData: null,
+            settings: Storage.get('chatstore_settings', DEFAULT_SETTINGS),
+            products: Storage.get('chatstore_products', DEFAULT_PRODUCTS),
+            orders: Storage.get('chatstore_orders', []),
+            editingProduct: null
+        };
+
+        function saveState() {
+            Storage.set('chatstore_settings', appState.settings);
+            Storage.set('chatstore_products', appState.products);
+            Storage.set('chatstore_orders', appState.orders);
+            Storage.set('chatstore_current_customer', appState.customerUser);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if(!container) return;
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold text-white flex items-center space-x-2 fade-in border border-white/20 ${
+                type === 'success' ? 'bg-sky-600' : type === 'error' ? 'bg-rose-600' : 'bg-indigo-600'
+            }`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-sm' : type === 'error' ? 'fa-circle-exclamation text-sm' : 'fa-circle-info text-sm'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        let modalCallback = null;
+        function showCustomModal(title, text, callback) {
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalText').innerText = text;
+            document.getElementById('customModalContainer').classList.remove('hidden');
+            modalCallback = callback;
+        }
+
+        function closeCustomModal(result) {
+            document.getElementById('customModalContainer').classList.add('hidden');
+            if (modalCallback) {
+                modalCallback(result);
+                modalCallback = null;
+            }
+        }
+
+        function safeCheckAuthAndSwitch(viewName) {
+            appState.currentView = viewName;
+            renderApp();
+            updateHeaderBranding();
+        }
+
+        function switchView(viewName) {
+            appState.currentView = viewName;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderApp();
+            updateHeaderBranding();
+        }
+
+        function toggleOwnerMode() {
+            if (!appState.isOwnerMode) {
+                if (!appState.ownerLoggedIn) {
+                    appState.currentView = 'owner-login';
+                } else {
+                    appState.currentView = 'owner-dashboard';
+                }
+                appState.isOwnerMode = true;
+                const toggleBtn = document.getElementById('modeToggleBtn');
+                if(toggleBtn) {
+                    toggleBtn.className = "px-3 py-2 text-xs font-extrabold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-2xl transition-all flex items-center gap-1.5 shadow-sm border border-emerald-300 cursor-pointer";
+                    document.getElementById('modeToggleText').innerText = "Panel Pembeli";
+                }
+                const bottomNav = document.getElementById('buyerBottomNav');
+                const desktopNav = document.getElementById('desktopNav');
+                if(bottomNav) bottomNav.classList.add('hidden');
+                if(desktopNav) desktopNav.classList.add('hidden');
+            } else {
+                appState.isOwnerMode = false;
+                appState.currentView = 'buyer-home';
+                const toggleBtn = document.getElementById('modeToggleBtn');
+                if(toggleBtn) {
+                    toggleBtn.className = "px-3 py-2 text-xs font-extrabold bg-sky-100 hover:bg-sky-200 text-sky-900 rounded-2xl transition-all flex items-center gap-1.5 shadow-sm border border-sky-300 cursor-pointer";
+                    document.getElementById('modeToggleText').innerText = "Panel Owner";
+                }
+                const bottomNav = document.getElementById('buyerBottomNav');
+                const desktopNav = document.getElementById('desktopNav');
+                if(bottomNav) bottomNav.classList.remove('hidden');
+                if(desktopNav) desktopNav.classList.remove('hidden');
+            }
+            renderApp();
+            updateHeaderBranding();
+        }
+
+        function updateHeaderBranding() {
+            const storeNameEl = document.getElementById('headerStoreName');
+            const logoContainer = document.getElementById('headerLogoContainer');
+            if (storeNameEl) storeNameEl.innerText = appState.settings.storeName;
+            if (logoContainer) {
+                if (appState.settings.storeLogo) {
+                    logoContainer.innerHTML = `<img src="${appState.settings.storeLogo}" class="w-full h-full object-cover">`;
+                } else {
+                    logoContainer.innerHTML = `<i class="fa-solid fa-store"></i>`;
+                }
+            }
+        }
+
+        function renderApp() {
+            const container = document.getElementById('appContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const pendingCount = appState.orders.filter(o => o.status === 'Menunggu Verifikasi' || o.status === 'Menunggu Pembayaran').length;
+            const badge = document.getElementById('orderBadge');
+            const dBadge = document.getElementById('desktopOrderBadge');
+            if (badge) {
+                if (pendingCount > 0) {
+                    badge.innerText = pendingCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            if (dBadge) {
+                if (pendingCount > 0) {
+                    dBadge.innerText = pendingCount;
+                    dBadge.classList.remove('hidden');
+                } else {
+                    dBadge.classList.add('hidden');
+                }
+            }
+
+            switch(appState.currentView) {
+                case 'buyer-auth':
+                    container.innerHTML = renderBuyerAuth();
+                    break;
+                case 'buyer-home':
+                    container.innerHTML = renderBuyerHome();
+                    highlightNav('nav-home');
+                    break;
+                case 'buyer-catalog':
+                    container.innerHTML = renderBuyerCatalog();
+                    highlightNav('nav-catalog');
+                    break;
+                case 'buyer-detail':
+                    container.innerHTML = renderBuyerDetail();
+                    break;
+                case 'buyer-checkout':
+                    container.innerHTML = renderBuyerCheckout();
+                    break;
+                case 'buyer-success':
+                    container.innerHTML = renderBuyerSuccess();
+                    break;
+                case 'buyer-orders':
+                    container.innerHTML = renderBuyerOrders();
+                    highlightNav('nav-orders');
+                    break;
+                case 'buyer-account':
+                    container.innerHTML = renderBuyerAccount();
+                    highlightNav('nav-account');
+                    break;
+                case 'buyer-edit-profile':
+                    container.innerHTML = renderBuyerEditProfile();
+                    break;
+                case 'owner-login':
+                    container.innerHTML = renderOwnerLogin();
+                    break;
+                case 'owner-dashboard':
+                    container.innerHTML = renderOwnerDashboard();
+                    break;
+                case 'owner-products':
+                    container.innerHTML = renderOwnerProducts();
+                    break;
+                case 'owner-product-form':
+                    container.innerHTML = renderOwnerProductForm();
+                    break;
+                case 'owner-orders':
+                    container.innerHTML = renderOwnerOrders();
+                    break;
+                case 'owner-settings':
+                    container.innerHTML = renderOwnerSettings();
+                    break;
+                default:
+                    container.innerHTML = renderBuyerHome();
+            }
+        }
+
+        function highlightNav(navId) {
+            ['nav-home', 'nav-catalog', 'nav-orders', 'nav-account'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === navId) {
+                        el.className = "flex flex-col items-center text-[10px] font-black text-sky-700 transition-colors";
+                        const div = el.querySelector('div');
+                        if(div) div.className = "p-1.5 rounded-xl bg-sky-100 mb-0.5 shadow-sm";
+                    } else {
+                        el.className = "flex flex-col items-center text-[10px] font-medium text-slate-400 hover:text-sky-700 transition-colors";
+                        const div = el.querySelector('div');
+                        if(div) div.className = "p-1.5 rounded-xl hover:bg-sky-50 mb-0.5";
+                    }
+                }
+            });
+
+            const dnavKey = navId.replace('nav-', 'dnav-');
+            ['dnav-home', 'dnav-catalog', 'dnav-orders', 'dnav-account'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    if(id === dnavKey) {
+                        el.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 bg-white transition-all flex items-center gap-1.5 shadow-sm";
+                    } else {
+                        el.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-700 hover:bg-white transition-all flex items-center gap-1.5";
+                    }
+                }
+            });
+        }
+
+        function renderBuyerAuth() {
+            return `
+                <div class="fade-in space-y-4 max-w-sm mx-auto pt-6">
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-6 border-2 border-sky-100 shadow-xl space-y-4">
+                        <div class="text-center">
+                            <div class="w-14 h-14 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto text-2xl mb-2 shadow-inner border-2 border-sky-200">
+                                <i class="fa-solid fa-user-plus"></i>
+                            </div>
+                            <h3 class="font-black text-slate-900 text-base">Buat Akun Pelanggan</h3>
+                            <p class="text-xs text-slate-500 mt-1">Daftar terlebih dahulu atau masuk sebagai tamu.</p>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Username / Nama Lengkap</label>
+                                <input type="text" id="authName" placeholder="Masukkan username" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                                <input type="password" id="authPass" placeholder="Masukkan password" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                                <input type="tel" id="authPhone" placeholder="Contoh: 08123456789" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                        </div>
+                        <button onclick="handleCustomerRegistration()" class="w-full pastel-gradient-bg text-white font-black py-3.5 rounded-2xl shadow-xl shadow-sky-300 transition-all text-xs cursor-pointer">Daftar & Masuk Toko 🚀</button>
+                        <button onclick="switchView('buyer-home')" class="w-full bg-sky-50 hover:bg-sky-100 text-sky-800 font-extrabold py-3 rounded-2xl border border-sky-200 transition-all text-xs cursor-pointer">Masuk sebagai Tamu / Demo 🌟</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleCustomerRegistration() {
+            const name = document.getElementById('authName').value.trim() || "Pelanggan Setia";
+            const pass = document.getElementById('authPass').value.trim() || "123456";
+            const phone = document.getElementById('authPhone').value.trim() || "628123456789";
+
+            appState.customerUser = { fullName: name, phone: phone, username: name };
+            saveState();
+
+            switchView('buyer-home');
+            showToast(`Selamat datang Kak ${name}! ✨`);
+        }
+
+        function renderBuyerHome() {
+            const activeProducts = appState.products.filter(p => p.status === 'active');
+            const categories = ['Game', 'Streaming App', 'Editing App', 'Other App'];
+
+            return `
+                <div class="fade-in space-y-4">
+                    <div class="relative">
+                        <input type="text" id="searchInput" oninput="handleSearchInput(event)" placeholder="Cari game atau aplikasi digital..." value="${appState.searchQuery}" class="w-full bg-white/95 backdrop-blur border-2 border-sky-200 rounded-3xl py-2.5 pl-11 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 shadow-sm transition-all text-slate-700">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3 text-sky-500 text-xs"></i>
+                    </div>
+
+                    <div class="pastel-gradient-bg rounded-3xl p-5 text-white soft-shadow relative overflow-hidden border-2 border-white/40">
+                        <div class="absolute -right-6 -bottom-6 text-white/10 text-9xl pointer-events-none">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="relative z-10 space-y-1.5">
+                            <span class="bg-white/25 backdrop-blur text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block shadow-sm">🌟 Verified Only QRIS Store</span>
+                            <h2 class="text-lg font-black leading-snug drop-shadow-sm">${appState.settings.bannerTitle}</h2>
+                            <p class="text-[11px] text-sky-100 font-medium leading-relaxed">${appState.settings.bannerSub}</p>
+                            <button onclick="switchView('buyer-catalog')" class="mt-2 bg-white text-sky-800 text-[11px] font-black px-4 py-2 rounded-2xl shadow-md hover:bg-sky-50 active:scale-95 transition-all flex items-center gap-2 cursor-pointer">
+                                <span>Belanja Sekarang</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5"><i class="fa-solid fa-heart text-sky-500"></i> Kategori Produk</h3>
+                        <div class="grid grid-cols-4 gap-2 text-center">
+                            <div onclick="filterByCategory('Semua')" class="bg-white/90 p-2 rounded-2xl border-2 ${appState.selectedCategory==='Semua'?'border-sky-500 bg-sky-50':'border-sky-100'} shadow-sm cursor-pointer hover:border-sky-300 transition-all">
+                                <div class="w-7 h-7 mx-auto bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center text-xs mb-1 shadow-sm"><i class="fa-solid fa-border-all"></i></div>
+                                <span class="text-[9px] font-bold text-slate-700 block truncate">Semua</span>
+                            </div>
+                            <div onclick="filterByCategory('Game')" class="bg-white/90 p-2 rounded-2xl border-2 ${appState.selectedCategory==='Game'?'border-sky-500 bg-sky-50':'border-sky-100'} shadow-sm cursor-pointer hover:border-sky-300 transition-all">
+                                <div class="w-7 h-7 mx-auto bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xs mb-1 shadow-sm"><i class="fa-solid fa-gamepad"></i></div>
+                                <span class="text-[9px] font-bold text-slate-700 block truncate">Game</span>
+                            </div>
+                            <div onclick="filterByCategory('Streaming App')" class="bg-white/90 p-2 rounded-2xl border-2 ${appState.selectedCategory==='Streaming App'?'border-sky-500 bg-sky-50':'border-sky-100'} shadow-sm cursor-pointer hover:border-sky-300 transition-all">
+                                <div class="w-7 h-7 mx-auto bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xs mb-1 shadow-sm"><i class="fa-solid fa-tv"></i></div>
+                                <span class="text-[9px] font-bold text-slate-700 block truncate">Streaming</span>
+                            </div>
+                            <div onclick="filterByCategory('Editing App')" class="bg-white/90 p-2 rounded-2xl border-2 ${appState.selectedCategory==='Editing App'?'border-sky-500 bg-sky-50':'border-sky-100'} shadow-sm cursor-pointer hover:border-sky-300 transition-all">
+                                <div class="w-7 h-7 mx-auto bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center text-xs mb-1 shadow-sm"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                                <span class="text-[9px] font-bold text-slate-700 block truncate">Editing</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 mt-2">
+                            <div onclick="filterByCategory('Other App')" class="bg-white/90 py-2 px-3 rounded-2xl border-2 ${appState.selectedCategory==='Other App'?'border-sky-500 bg-sky-50':'border-sky-100'} shadow-sm cursor-pointer hover:border-sky-300 flex items-center justify-center gap-2 transition-all">
+                                <div class="w-6 h-6 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-box"></i></div>
+                                <span class="text-[10px] font-bold text-slate-700">Kategori Lainnya (Other App)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${categories.map(cat => {
+                        if (appState.selectedCategory !== 'Semua' && appState.selectedCategory !== cat) return '';
+                        const items = activeProducts.filter(p => p.category.toLowerCase() === cat.toLowerCase());
+                        if (items.length === 0) return '';
+                        return `
+                            <div class="space-y-2 border-t border-sky-200/50 pt-3">
+                                <div class="flex justify-between items-center px-1">
+                                    <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle-dot text-sky-500 text-[10px]"></i> Kategori ${cat}
+                                    </h3>
+                                    <button onclick="filterByCategory('${cat}'); switchView('buyer-catalog');" class="text-[11px] text-sky-700 font-extrabold hover:underline cursor-pointer">Lihat Semua</button>
+                                </div>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    ${items.map(p => renderProductCard(p)).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderProductCard(product) {
+            const isOut = product.stock <= 0 || product.status === 'inactive';
+            return `
+                <div onclick="selectProduct('${product.id}')" class="bg-white/95 backdrop-blur border-2 border-sky-100 rounded-2xl p-2.5 shadow-sm hover:shadow-lg hover:border-sky-300 transition-all cursor-pointer flex flex-col justify-between relative group">
+                    ${product.label ? `<span class="absolute top-2 left-2 pastel-gradient-bg text-white text-[8px] font-black px-2 py-0.5 rounded-full z-10 shadow-sm">${product.label}</span>` : ''}
+                    <div>
+                        <div class="w-full h-28 bg-sky-50 rounded-xl overflow-hidden mb-2 relative border border-sky-100 flex items-center justify-center">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x400/e0f0fe/025fa2?text=Product'">
+                            ${isOut ? `<div class="absolute inset-0 bg-slate-900/70 backdrop-blur-[2px] flex items-center justify-center text-white text-[10px] font-black rounded-xl">Stok Habis</div>` : ''}
+                        </div>
+                        <span class="text-[8px] font-black text-sky-700 uppercase tracking-wider">${product.category}</span>
+                        <h4 class="font-extrabold text-slate-900 text-xs leading-tight line-clamp-1 group-hover:text-sky-700 transition-colors">${product.name}</h4>
+                    </div>
+                    <div class="mt-2 pt-1.5 border-t border-sky-100/60 flex items-center justify-between">
+                        <div>
+                            <span class="text-[8px] text-slate-400 block font-medium">Mulai</span>
+                            <span class="text-[11px] font-black text-sky-700 leading-tight">Rp ${product.price.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="w-5 h-5 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBuyerCatalog() {
+            let products = appState.products.filter(p => p.status === 'active');
+            if (appState.selectedCategory !== 'Semua') {
+                products = products.filter(p => p.category.toLowerCase() === appState.selectedCategory.toLowerCase());
+            }
+            if (appState.searchQuery.trim() !== '') {
+                const q = appState.searchQuery.toLowerCase();
+                products = products.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+            }
+
+            const categories = ['Semua', 'Game', 'Streaming App', 'Editing App', 'Other App'];
+
+            return `
+                <div class="fade-in space-y-3">
+                    <div class="relative">
+                        <input type="text" id="searchInput" oninput="handleSearchInput(event)" placeholder="Cari produk digital..." value="${appState.searchQuery}" class="w-full bg-white/95 backdrop-blur border-2 border-sky-200 rounded-3xl py-2.5 pl-11 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 shadow-sm text-slate-700">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3 text-sky-500 text-xs"></i>
+                    </div>
+
+                    <div class="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+                        ${categories.map(cat => `
+                            <button onclick="filterByCategory('${cat}')" class="px-3.5 py-1.5 rounded-2xl text-[10px] font-extrabold whitespace-nowrap transition-all border-2 cursor-pointer ${
+                                appState.selectedCategory === cat ? 'pastel-gradient-bg text-white shadow-sm border-transparent' : 'bg-white/90 text-slate-700 border-sky-100 hover:bg-sky-50'
+                            }">
+                                ${cat}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    ${products.length === 0 ? `
+                        <div class="bg-white/95 rounded-3xl p-6 text-center border-2 border-sky-100 shadow-sm mt-4">
+                            <div class="w-12 h-12 bg-sky-100 text-sky-500 rounded-2xl flex items-center justify-center mx-auto text-xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 text-xs">Produk tidak ditemukan</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Coba kata kunci atau kategori lain ya kak.</p>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            ${products.map(p => renderProductCard(p)).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function filterByCategory(cat) {
+            appState.selectedCategory = cat;
+            renderApp();
+        }
+
+        function handleSearchInput(e) {
+            appState.searchQuery = e.target.value;
+            renderApp();
+            const input = document.getElementById('searchInput');
+            if (input) {
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+        }
+
+        function selectProduct(id) {
+            appState.activeProductId = id;
+            appStateVariantIndex = 0;
+            appStateQuantity = 1;
+            switchView('buyer-detail');
+        }
+
+        let appStateVariantIndex = 0;
+        let appStateQuantity = 1;
+
+        function renderBuyerDetail() {
+            const product = appState.products.find(p => p.id === appState.activeProductId);
+            if (!product) return `<div class="text-center py-12">Produk tidak ditemukan. <button onclick="switchView('buyer-home')" class="text-sky-700 underline font-bold cursor-pointer">Kembali</button></div>`;
+
+            const variants = product.variants && product.variants.length > 0 ? product.variants : [{ name: 'Standar / Regular', price: product.price, stock: product.stock }];
+            const currentVariant = variants[appStateVariantIndex] || variants[0];
+            const isOut = currentVariant.stock <= 0 || product.status === 'inactive';
+
+            return `
+                <div class="fade-in space-y-4 pb-28">
+                    <button onclick="switchView('buyer-home')" class="flex items-center text-xs font-extrabold text-sky-700 mb-1 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Beranda
+                    </button>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl overflow-hidden border-2 border-sky-100 shadow-sm">
+                        <div class="w-full h-52 bg-sky-50 relative border-b border-sky-100 flex items-center justify-center">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-52 object-cover" onerror="this.src='https://placehold.co/400x400/e0f0fe/025fa2?text=Product'">
+                            ${product.label ? `<span class="absolute top-3 left-3 pastel-gradient-bg text-white text-[10px] font-black px-3 py-0.5 rounded-full shadow-md">${product.label}</span>` : ''}
+                        </div>
+                        <div class="p-4 space-y-3.5">
+                            <div>
+                                <span class="text-[10px] font-black text-sky-700 uppercase tracking-wider">${product.category}</span>
+                                <h2 class="text-base font-black text-slate-900 mt-0.5">${product.name}</h2>
+                                <p class="text-sm font-black text-sky-700 mt-0.5">Rp ${currentVariant.price.toLocaleString('id-ID')}</p>
+                            </div>
+
+                            <div class="border-t border-sky-100 pt-3">
+                                <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-list-check text-sky-600"></i> Pilih Varian / Plan / Nominal
+                                </h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    ${variants.map((v, idx) => `
+                                        <button onclick="selectVariant(${idx})" class="p-2.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                                            appStateVariantIndex === idx ? 'border-sky-500 bg-sky-50 text-sky-950 shadow-sm font-black' : 'border-sky-100 bg-white text-slate-700 hover:border-sky-300 font-semibold'
+                                        }">
+                                            <div class="text-[11px] leading-snug">${v.name}</div>
+                                            <div class="text-[10px] text-sky-700 font-black mt-0.5">Rp ${v.price.toLocaleString('id-ID')}</div>
+                                            <div class="text-[9px] text-slate-400 mt-0.5">Stok: ${v.stock}</div>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="border-t border-sky-100 pt-3 flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-slate-800">Jumlah Pembelian</span>
+                                <div class="flex items-center space-x-2.5 bg-sky-50 px-2.5 py-1 rounded-2xl border-2 border-sky-100">
+                                    <button onclick="updateQty(-1)" class="w-6 h-6 bg-white rounded-xl text-sky-700 font-bold shadow-sm flex items-center justify-center hover:bg-sky-600 hover:text-white transition-all text-xs cursor-pointer">-</button>
+                                    <span class="text-xs font-black w-5 text-center text-sky-900">${appStateQuantity}</span>
+                                    <button onclick="updateQty(1)" class="w-6 h-6 bg-white rounded-xl text-sky-700 font-bold shadow-sm flex items-center justify-center hover:bg-sky-600 hover:text-white transition-all text-xs cursor-pointer">+</button>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-sky-100 pt-3">
+                                <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-1">Deskripsi Produk</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed">${product.description || 'Tidak ada deskripsi.'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-sky-200 p-3.5 max-w-4xl mx-auto z-30 shadow-2xl flex items-center justify-between rounded-t-3xl">
+                        <div>
+                            <span class="text-[9px] text-slate-400 block font-semibold">Total Pembayaran</span>
+                            <span class="text-sm font-black text-sky-700">Rp ${(currentVariant.price * appStateQuantity).toLocaleString('id-ID')}</span>
+                        </div>
+                        <button onclick="proceedCheckout()" ${isOut ? 'disabled' : ''} class="px-5 py-3 rounded-2xl font-black text-xs shadow-xl transition-all cursor-pointer ${
+                            isOut ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'pastel-gradient-bg hover:opacity-95 text-white shadow-sky-300/50 active:scale-95'
+                        }">
+                            ${isOut ? 'Stok Habis' : 'Beli Sekarang 🚀'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectVariant(idx) {
+            appStateVariantIndex = idx;
+            renderApp();
+        }
+
+        function updateQty(change) {
+            const product = appState.products.find(p => p.id === appState.activeProductId);
+            const variants = product.variants && product.variants.length > 0 ? product.variants : [{ stock: product.stock }];
+            const currentVariant = variants[appStateVariantIndex] || variants[0];
+
+            let newQty = appStateQuantity + change;
+            if (newQty < 1) newQty = 1;
+            if (newQty > currentVariant.stock) {
+                showToast(`Stok maksimum varian ini adalah ${currentVariant.stock}`, 'error');
+                newQty = currentVariant.stock;
+            }
+            appStateQuantity = newQty;
+            renderApp();
+        }
+
+        function proceedCheckout() {
+            const product = appState.products.find(p => p.id === appState.activeProductId);
+            const variants = product.variants && product.variants.length > 0 ? product.variants : [{ name: 'Standar', price: product.price, stock: product.stock }];
+            const currentVariant = variants[appStateVariantIndex] || variants[0];
+
+            appState.checkoutData = {
+                product: product,
+                variant: currentVariant,
+                quantity: appStateQuantity,
+                total: currentVariant.price * appStateQuantity
+            };
+            switchView('buyer-checkout');
+        }
+
+        function renderBuyerCheckout() {
+            const data = appState.checkoutData;
+            if (!data) return `<div class="text-center py-12">Keranjang kosong. <button onclick="switchView('buyer-home')" class="text-sky-700 underline font-bold cursor-pointer">Belanja</button></div>`;
+
+            const buyerName = appState.customerUser ? appState.customerUser.fullName : 'Tamu';
+            const buyerPhone = appState.customerUser ? appState.customerUser.phone : '62812345678';
+
+            return `
+                <div class="fade-in space-y-4 pb-28">
+                    <button onclick="switchView('buyer-detail')" class="flex items-center text-xs font-extrabold text-sky-700 mb-1 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Detail
+                    </button>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-3">
+                        <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-sky-100 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-receipt text-sky-600"></i> Ringkasan Pesanan</h3>
+                        <div class="flex items-center space-x-3">
+                            <img src="${data.product.image}" class="w-12 h-12 rounded-2xl object-cover bg-sky-50 border border-sky-100" onerror="this.src='https://placehold.co/100x100/e0f0fe/025fa2?text=Img'">
+                            <div>
+                                <h4 class="font-black text-slate-900 text-xs">${data.product.name}</h4>
+                                <span class="text-[10px] text-sky-700 font-bold">Plan/Varian: ${data.variant.name}</span>
+                                <div class="text-[10px] text-slate-500 mt-0.5">Jumlah: ${data.quantity} x Rp ${data.variant.price.toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        <div class="bg-sky-50 p-3 rounded-2xl flex justify-between items-center border-2 border-sky-200">
+                            <span class="text-xs font-black text-slate-800">Total Pembayaran</span>
+                            <span class="text-sm font-black text-sky-700">Rp ${data.total.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-3">
+                        <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-sky-100 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-user text-sky-600"></i> Informasi Pembeli</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-sky-100">
+                                <span class="text-slate-400 text-[10px] block">Nama Pembeli</span>
+                                <span class="font-bold text-slate-800">${buyerName}</span>
+                            </div>
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-sky-100">
+                                <span class="text-slate-400 text-[10px] block">WhatsApp</span>
+                                <span class="font-bold text-slate-800">${buyerPhone}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-3">
+                        <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-sky-100 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-wallet text-sky-600"></i> Metode Pembayaran (Only QRIS)</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center justify-between p-3 rounded-2xl border-2 cursor-pointer transition-all border-sky-500 bg-sky-50 shadow-sm font-black">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-7 h-7 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs shadow-sm">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </div>
+                                    <span class="text-xs text-slate-800">QRIS ✨ (Auto Scan / All Payment)</span>
+                                </div>
+                                <input type="radio" name="paymentMethod" value="QRIS" checked class="text-sky-600 focus:ring-sky-500 w-4 h-4">
+                            </label>
+                        </div>
+
+                        <div class="mt-3 p-3.5 bg-sky-50 rounded-2xl border-2 border-sky-200 text-center space-y-3">
+                            <h4 class="text-xs font-black text-sky-900 uppercase tracking-wide">Scan QRIS Store</h4>
+                            <div class="w-48 h-48 mx-auto bg-white rounded-2xl p-2 border-2 border-sky-300 shadow-md overflow-hidden flex items-center justify-center">
+                                ${appState.settings.qrisImage ? `
+                                    <img id="qrisImageElement" src="${appState.settings.qrisImage}" class="w-full h-full object-contain">
+                                ` : `
+                                    <div class="text-slate-400 text-xs font-bold p-4 text-center">
+                                        <i class="fa-solid fa-qrcode text-3xl mb-2 text-sky-400"></i><br>
+                                        QRIS Belum diatur.
+                                    </div>
+                                `}
+                            </div>
+                            <button onclick="downloadQrisImage()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-2.5 rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-download"></i> Unduh / Simpan QRIS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-1">
+                        <button onclick="submitOrder()" class="w-full pastel-gradient-bg hover:opacity-95 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-sky-300/50 transition-all text-xs flex items-center justify-center space-x-2 active:scale-95 cursor-pointer">
+                            <span>Konfirmasi & Buat Pesanan 🚀</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadQrisImage() {
+            const imgEl = document.getElementById('qrisImageElement');
+            if(!imgEl || !appState.settings.qrisImage) {
+                showToast('Gambar QRIS belum tersedia.', 'error');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = appState.settings.qrisImage;
+            link.download = 'QRIS-ChatStore.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('QRIS berhasil diunduh!');
+        }
+
+        function submitOrder() {
+            const data = appState.checkoutData;
+            const productIndex = appState.products.findIndex(p => p.id === data.product.id);
+            if (productIndex === -1) {
+                showToast('Produk tidak ditemukan.', 'error');
+                return;
+            }
+
+            const product = appState.products[productIndex];
+            if (product.variants && product.variants.length > 0) {
+                const varIndex = product.variants.findIndex(v => v.name === data.variant.name);
+                if (varIndex !== -1) {
+                    if (product.variants[varIndex].stock < data.quantity) {
+                        showToast('Stok varian tidak mencukupi!', 'error');
+                        return;
+                    }
+                    product.variants[varIndex].stock -= data.quantity;
+                }
+            }
+            product.stock -= data.quantity;
+
+            const orderId = 'CAD' + Math.floor(100000 + Math.random() * 900000);
+            const now = new Date();
+            const dateStr = `${now.getDate()} ${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][now.getMonth()]} ${now.getFullYear()}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            const newOrder = {
+                id: orderId,
+                buyerName: appState.customerUser.fullName,
+                buyerPhone: appState.customerUser.phone,
+                productId: data.product.id,
+                productName: data.product.name,
+                variant: data.variant.name,
+                quantity: data.quantity,
+                total: data.total,
+                paymentMethod: 'QRIS',
+                status: 'Menunggu Verifikasi',
+                date: dateStr,
+                deliveryNote: 'Menunggu konfirmasi pembayaran oleh Owner.'
+            };
+
+            appState.orders.unshift(newOrder);
+            appState.activeOrderId = orderId;
+            saveState();
+
+            switchView('buyer-success');
+            showToast('Pesanan berhasil dibuat!');
+        }
+
+        function renderBuyerSuccess() {
+            const order = appState.orders.find(o => o.id === appState.activeOrderId) || appState.orders[0];
+            if (!order) return `<div class="text-center py-12">Pesanan tidak ditemukan.</div>`;
+
+            let format = appState.settings.orderFormatTemplate || DEFAULT_SETTINGS.orderFormatTemplate;
+            let messageText = format
+                .replace('[ID_PESANAN]', order.id)
+                .replace('[NAMA_PEMBELI]', order.buyerName)
+                .replace('[NAMA_PRODUK]', order.productName)
+                .replace('[VARIAN]', order.variant)
+                .replace('[JUMLAH]', order.quantity)
+                .replace('[TOTAL]', order.total.toLocaleString('id-ID'))
+                .replace('[METODE]', order.paymentMethod)
+                .replace('[STATUS]', order.status)
+                .replace('[TANGGAL]', order.date);
+
+            let phoneClean = appState.settings.ownerPhone.replace(/\D/g, '');
+            if(phoneClean.startsWith('0')) phoneClean = '62' + phoneClean.slice(1);
+            const waUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(messageText)}`;
+
+            return `
+                <div class="fade-in space-y-4 pb-12 text-center">
+                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-inner border-2 border-sky-200">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900">Pesanan Berhasil Dibuat! 🎉</h2>
+                        <p class="text-xs text-slate-500 mt-1">ID Pesanan: <span class="font-bold text-sky-700">${order.id}</span></p>
+                    </div>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm text-left space-y-3">
+                        <h3 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider border-b border-sky-100 pb-2 flex items-center gap-1.5"><i class="fa-solid fa-file-lines text-sky-600"></i> Format Pesanan WhatsApp</h3>
+                        <div class="bg-slate-50 p-3.5 rounded-2xl border border-sky-100 font-mono text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed select-all">${messageText}</div>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <a href="${waUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl shadow-xl shadow-emerald-600/30 transition-all text-xs flex items-center justify-center space-x-2 cursor-pointer">
+                            <i class="fa-brands fa-whatsapp text-base"></i>
+                            <span>Kirim Pesanan ke WhatsApp Owner 🚀</span>
+                        </a>
+                        <button onclick="switchView('buyer-orders')" class="w-full bg-white hover:bg-sky-50 text-sky-700 border-2 border-sky-200 font-bold py-3 rounded-2xl transition-all text-xs cursor-pointer">
+                            Cek Status Pesanan Saya 📋
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBuyerOrders() {
+            const orders = appState.orders;
+
+            return `
+                <div class="fade-in space-y-4 pb-20">
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2 px-1"><i class="fa-solid fa-receipt text-sky-600"></i> Daftar Pesanan Kamu</h2>
+                    
+                    ${orders.length === 0 ? `
+                        <div class="bg-white/95 rounded-3xl p-8 text-center border-2 border-sky-100 shadow-sm">
+                            <div class="w-14 h-14 bg-sky-100 text-sky-500 rounded-2xl flex items-center justify-center mx-auto text-2xl mb-2 shadow-inner">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 text-xs">Belum ada pesanan</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Yuk mulai belanja produk digital favoritmu!</p>
+                            <button onclick="switchView('buyer-catalog')" class="mt-4 pastel-gradient-bg text-white font-black text-xs px-5 py-2.5 rounded-2xl shadow-md cursor-pointer">Mulai Belanja</button>
+                        </div>
+                    ` : `
+                        <div class="space-y-3">
+                            ${orders.map(o => `
+                                <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-2.5">
+                                    <div class="flex justify-between items-start border-b border-sky-100 pb-2">
+                                        <div>
+                                            <span class="text-[10px] font-black text-sky-700">${o.id}</span>
+                                            <h4 class="font-black text-slate-900 text-xs">${o.productName}</h4>
+                                            <span class="text-[10px] text-slate-500">${o.variant} (x${o.quantity})</span>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                            o.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : o.status === 'Diproses' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                                        }">
+                                            ${o.status}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-[11px]">
+                                        <span class="text-slate-400">${o.date}</span>
+                                        <span class="font-black text-sky-700">Rp ${o.total.toLocaleString('id-ID')}</span>
+                                    </div>
+                                    ${o.deliveryNote ? `
+                                        <div class="mt-2 p-2.5 bg-sky-50 rounded-2xl border border-sky-200 text-[11px] text-slate-700 font-mono">
+                                            <span class="font-bold text-sky-800 block text-[10px] mb-0.5"><i class="fa-solid fa-key"></i> Catatan / Data Akun:</span>
+                                            ${o.deliveryNote}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderBuyerAccount() {
+            const user = appState.customerUser;
+
+            return `
+                <div class="fade-in space-y-4 pb-20">
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2 px-1"><i class="fa-solid fa-user-circle text-sky-600"></i> Akun Saya</h2>
+
+                    ${user ? `
+                        <div class="bg-white/95 backdrop-blur rounded-3xl p-5 border-2 border-sky-100 shadow-sm space-y-3 text-center">
+                            <div class="relative w-20 h-20 mx-auto">
+                                <div id="profileImagePreview" class="w-20 h-20 bg-sky-100 text-sky-700 rounded-3xl flex items-center justify-center text-3xl font-black shadow-inner border-2 border-sky-200 overflow-hidden">
+                                    ${user.avatar ? `<img src="${user.avatar}" class="w-full h-full object-cover">` : user.fullName.charAt(0).toUpperCase()}
+                                </div>
+                                <label class="absolute -bottom-1 -right-1 bg-sky-600 text-white w-7 h-7 rounded-xl flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-sky-700 transition-all">
+                                    <i class="fa-solid fa-camera"></i>
+                                    <input type="file" accept="image/*" onchange="uploadProfileAvatar(event)" class="hidden">
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="font-black text-slate-900 text-sm">${user.fullName}</h3>
+                                <p class="text-xs text-sky-700 font-bold">${user.phone}</p>
+                            </div>
+                            <div class="pt-2 flex gap-2">
+                                <button onclick="switchView('buyer-edit-profile')" class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-800 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer">Edit Profil</button>
+                                <button onclick="switchView('buyer-auth')" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer">Ganti Akun</button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-2">
+                        <h4 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider mb-2">Bantuan & Informasi Toko</h4>
+                        <a href="https://wa.me/${appState.settings.ownerPhone.replace(/\D/g,'')}" target="_blank" class="flex items-center justify-between p-3 rounded-2xl bg-sky-50 hover:bg-sky-100 transition-all text-xs font-bold text-slate-700 border border-sky-200">
+                            <span class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> Chat Admin / Owner</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function uploadProfileAvatar(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    if (appState.customerUser) {
+                        appState.customerUser.avatar = evt.target.result;
+                        saveState();
+                        renderApp();
+                        showToast('Foto profil diperbarui!');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderBuyerEditProfile() {
+            const user = appState.customerUser || { fullName: '', phone: '' };
+            return `
+                <div class="fade-in space-y-4 max-w-sm mx-auto pt-4">
+                    <button onclick="switchView('buyer-account')" class="flex items-center text-xs font-extrabold text-sky-700 mb-2 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali
+                    </button>
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-6 border-2 border-sky-100 shadow-sm space-y-3.5">
+                        <h3 class="font-black text-slate-900 text-sm text-center">Edit Profil Akun</h3>
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                                <input type="text" id="editName" value="${user.fullName}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                                <input type="tel" id="editPhone" value="${user.phone}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                        </div>
+                        <button onclick="saveProfile()" class="w-full pastel-gradient-bg text-white font-black py-3 rounded-2xl shadow-lg text-xs cursor-pointer">Simpan Perubahan ✨</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            if (!name || !phone) {
+                showToast('Nama dan telepon wajib diisi', 'error');
+                return;
+            }
+            appState.customerUser.fullName = name;
+            appState.customerUser.phone = phone;
+            saveState();
+            switchView('buyer-account');
+            showToast('Profil berhasil diperbarui!');
+        }
+
+        function renderOwnerLogin() {
+            return `
+                <div class="fade-in space-y-4 max-w-sm mx-auto pt-10">
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-6 border-2 border-sky-100 shadow-xl space-y-4 text-center">
+                        <div class="w-14 h-14 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 text-base">Login Owner Chat Store</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Masukkan PIN Akses (Default: 2626).</p>
+                        </div>
+                        <div class="space-y-3 text-left">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Username Owner</label>
+                                <input type="text" id="ownerUserField" placeholder="acad" value="acad" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-4 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800 mb-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">PIN Akses</label>
+                                <input type="password" id="ownerPinInput" placeholder="2626" value="2626" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-4 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-800">
+                            </div>
+                            <button onclick="verifyOwnerLogin()" class="w-full pastel-gradient-bg text-white font-black py-3.5 rounded-2xl shadow-xl shadow-sky-300 transition-all text-xs cursor-pointer">Masuk Dashboard 🚀</button>
+                            <button onclick="toggleOwnerMode()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-2xl transition-all text-xs cursor-pointer">Kembali ke Pembeli</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function verifyOwnerLogin() {
+            const pin = document.getElementById('ownerPinInput').value.trim();
+            if (pin === '2626' || pin === '') {
+                appState.ownerLoggedIn = true;
+                switchView('owner-dashboard');
+                showToast('Login owner berhasil! ✨');
+            } else {
+                showToast('PIN Owner salah! Gunakan 2626', 'error');
+            }
+        }
+
+        function renderOwnerDashboard() {
+            const totalOrders = appState.orders.length;
+            const totalRevenue = appState.orders.filter(o => o.status === 'Selesai').reduce((acc, o) => acc + o.total, 0);
+            const pendingOrders = appState.orders.filter(o => o.status === 'Menunggu Verifikasi').length;
+
+            return `
+                <div class="fade-in space-y-4 pb-12">
+                    <div class="pastel-gradient-bg rounded-3xl p-5 text-white shadow-lg space-y-2">
+                        <span class="bg-white/25 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block">👑 Panel Utama Owner</span>
+                        <h2 class="text-lg font-black">Halo, ${appState.settings.ownerName} ✨</h2>
+                        <p class="text-xs text-sky-100">Kelola produk, pesanan, logo toko, dan QRIS.</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-white p-3 rounded-2xl border-2 border-sky-100 shadow-sm">
+                            <span class="text-[9px] font-bold text-slate-400 block uppercase">Total Transaksi</span>
+                            <span class="text-base font-black text-sky-700 mt-0.5 block">${totalOrders}</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-2xl border-2 border-sky-100 shadow-sm">
+                            <span class="text-[9px] font-bold text-slate-400 block uppercase">Menunggu</span>
+                            <span class="text-base font-black text-amber-600 mt-0.5 block">${pendingOrders}</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-2xl border-2 border-sky-100 shadow-sm">
+                            <span class="text-[9px] font-bold text-slate-400 block uppercase">Pendapatan</span>
+                            <span class="text-xs font-black text-emerald-600 mt-1 block">Rp ${totalRevenue.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button onclick="switchView('owner-products')" class="bg-white hover:bg-sky-50 border-2 border-sky-100 p-4 rounded-3xl text-left space-y-2 shadow-sm transition-all group cursor-pointer">
+                            <div class="w-10 h-10 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform shadow-inner">
+                                <i class="fa-solid fa-box-archive"></i>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-xs">Kelola Produk</h4>
+                            <p class="text-[10px] text-slate-400">Tambah/edit produk dari galeri.</p>
+                        </button>
+                        <button onclick="switchView('owner-orders')" class="bg-white hover:bg-sky-50 border-2 border-sky-100 p-4 rounded-3xl text-left space-y-2 shadow-sm transition-all group cursor-pointer">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform shadow-inner">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-xs">Kelola Pesanan</h4>
+                            <p class="text-[10px] text-slate-400">Verifikasi pembayaran.</p>
+                        </button>
+                        <button onclick="switchView('owner-settings')" class="bg-white hover:bg-sky-50 border-2 border-sky-100 p-4 rounded-3xl text-left space-y-2 shadow-sm transition-all group col-span-2 cursor-pointer">
+                            <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform shadow-inner">
+                                <i class="fa-solid fa-gear"></i>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-xs">Pengaturan Toko, Logo & Upload QRIS Galeri</h4>
+                            <p class="text-[10px] text-slate-400">Upload logo toko, QRIS, & atur format pesan.</p>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOwnerProducts() {
+            const products = appState.products;
+
+            return `
+                <div class="fade-in space-y-4 pb-12">
+                    <div class="flex items-center justify-between">
+                        <button onclick="switchView('owner-dashboard')" class="flex items-center text-xs font-extrabold text-sky-700 cursor-pointer">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Dashboard
+                        </button>
+                        <button onclick="openProductForm(null)" class="pastel-gradient-bg text-white font-black text-xs px-4 py-2 rounded-2xl shadow-md flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-plus"></i> Tambah Produk
+                        </button>
+                    </div>
+
+                    <h2 class="text-base font-black text-slate-900 px-1">Kelola Produk Toko</h2>
+
+                    <div class="space-y-2.5">
+                        ${products.map(p => `
+                            <div class="bg-white/95 backdrop-blur rounded-3xl p-3.5 border-2 border-sky-100 shadow-sm flex items-center justify-between gap-3">
+                                <img src="${p.image}" class="w-12 h-12 rounded-2xl object-cover bg-sky-50 border border-sky-100" onerror="this.src='https://placehold.co/100x100/e0f0fe/025fa2?text=Img'">
+                                <div class="flex-1">
+                                    <span class="text-[9px] font-bold text-sky-700 uppercase">${p.category}</span>
+                                    <h4 class="font-black text-slate-900 text-xs">${p.name}</h4>
+                                    <div class="text-[10px] text-slate-500">Mulai Rp ${p.price.toLocaleString('id-ID')} • Stok: ${p.stock}</div>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="openProductForm('${p.id}')" class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center hover:bg-sky-600 hover:text-white transition-all text-xs cursor-pointer"><i class="fa-solid fa-pen"></i></button>
+                                    <button onclick="deleteProduct('${p.id}')" class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openProductForm(productId) {
+            if (productId) {
+                appState.editingProduct = JSON.parse(JSON.stringify(appState.products.find(p => p.id === productId)));
+            } else {
+                appState.editingProduct = {
+                    id: 'p_' + Date.now(),
+                    name: '',
+                    category: 'Game',
+                    price: 10000,
+                    stock: 10,
+                    status: 'active',
+                    label: '',
+                    image: 'https://placehold.co/400x400/e0f0fe/025fa2?text=Product',
+                    description: '',
+                    variants: [{ name: 'Reguler', price: 10000, stock: 10 }]
+                };
+            }
+            switchView('owner-product-form');
+        }
+
+        function renderOwnerProductForm() {
+            const p = appState.editingProduct;
+            if(!p) return `<div>Error</div>`;
+
+            return `
+                <div class="fade-in space-y-4 max-w-md mx-auto pb-16">
+                    <button onclick="switchView('owner-products')" class="flex items-center text-xs font-extrabold text-sky-700 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Produk
+                    </button>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-5 border-2 border-sky-100 shadow-sm space-y-3.5">
+                        <h3 class="font-black text-slate-900 text-sm border-b border-sky-100 pb-2">Form Edit / Tambah Produk</h3>
+                        
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
+                                <input type="text" id="formProdName" value="${p.name}" placeholder="Contoh: Roblox Robux" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Kategori Produk</label>
+                                    <select id="formProdCat" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3 font-semibold focus:outline-none focus:border-sky-500">
+                                        <option value="Game" ${p.category==='Game'?'selected':''}>Game</option>
+                                        <option value="Streaming App" ${p.category==='Streaming App'?'selected':''}>Streaming App</option>
+                                        <option value="Editing App" ${p.category==='Editing App'?'selected':''}>Editing App</option>
+                                        <option value="Other App" ${p.category==='Other App'?'selected':''}>Other App</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Label Badge</label>
+                                    <input type="text" id="formProdLabel" value="${p.label || ''}" placeholder="Contoh: Terlaris 🔥" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3 font-semibold focus:outline-none focus:border-sky-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Gambar Produk (Upload dari Galeri)</label>
+                                <div class="flex items-center gap-3">
+                                    <img id="formProdImagePreview" src="${p.image}" class="w-14 h-14 rounded-2xl object-cover bg-sky-50 border border-sky-200">
+                                    <label class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-800 text-center py-2.5 rounded-2xl font-bold cursor-pointer border border-sky-300 transition-all text-xs">
+                                        <i class="fa-solid fa-image"></i> Pilih Gambar dari Galeri
+                                        <input type="file" accept="image/*" onchange="handleProductImageUpload(event)" class="hidden">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Harga Utama</label>
+                                    <input type="number" id="formProdPrice" value="${p.price}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3 font-semibold focus:outline-none focus:border-sky-500">
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Stok Total</label>
+                                    <input type="number" id="formProdStock" value="${p.stock}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3 font-semibold focus:outline-none focus:border-sky-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Deskripsi Produk</label>
+                                <textarea id="formProdDesc" rows="2" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">${p.description || ''}</textarea>
+                            </div>
+
+                            <div class="border-t border-sky-100 pt-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="font-bold text-slate-800 uppercase tracking-wide">Varian / Nominal</label>
+                                    <button type="button" onclick="addVariantRow()" class="text-xs bg-sky-100 text-sky-700 px-2.5 py-1 rounded-xl font-bold cursor-pointer">+ Tambah Varian</button>
+                                </div>
+                                <div id="variantRowsContainer" class="space-y-2">
+                                    ${p.variants && p.variants.length > 0 ? p.variants.map((v, i) => `
+                                        <div class="flex items-center gap-2 variant-row">
+                                            <input type="text" placeholder="Nama Varian" value="${v.name}" class="flex-1 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-name">
+                                            <input type="number" placeholder="Harga" value="${v.price}" class="w-24 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-price">
+                                            <input type="number" placeholder="Stok" value="${v.stock}" class="w-16 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-stock">
+                                            <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 p-2 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                                        </div>
+                                    `).join('') : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="saveProductForm()" class="w-full pastel-gradient-bg text-white font-black py-3 rounded-2xl shadow-md text-xs mt-3 cursor-pointer">Simpan Produk 🚀</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleProductImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    appState.editingProduct.image = evt.target.result;
+                    const preview = document.getElementById('formProdImagePreview');
+                    if (preview) preview.src = evt.target.result;
+                    showToast('Gambar produk berhasil dimuat!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addVariantRow() {
+            const container = document.getElementById('variantRowsContainer');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = "flex items-center gap-2 variant-row";
+            div.innerHTML = `
+                <input type="text" placeholder="Nama Varian" value="Varian Baru" class="flex-1 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-name">
+                <input type="number" placeholder="Harga" value="15000" class="w-24 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-price">
+                <input type="number" placeholder="Stok" value="10" class="w-16 bg-slate-50 border border-sky-200 rounded-xl px-2.5 py-2 font-semibold var-stock">
+                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 p-2 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveProductForm() {
+            const p = appState.editingProduct;
+            p.name = document.getElementById('formProdName').value.trim();
+            p.category = document.getElementById('formProdCat').value;
+            p.label = document.getElementById('formProdLabel').value.trim();
+            p.price = parseInt(document.getElementById('formProdPrice').value) || 10000;
+            p.stock = parseInt(document.getElementById('formProdStock').value) || 10;
+            p.description = document.getElementById('formProdDesc').value.trim();
+
+            const rows = document.querySelectorAll('.variant-row');
+            let variants = [];
+            rows.forEach(r => {
+                const name = r.querySelector('.var-name').value.trim();
+                const price = parseInt(r.querySelector('.var-price').value) || 0;
+                const stock = parseInt(r.querySelector('.var-stock').value) || 0;
+                if(name) variants.push({ name, price, stock });
+            });
+            p.variants = variants.length > 0 ? variants : [{ name: 'Reguler', price: p.price, stock: p.stock }];
+
+            const index = appState.products.findIndex(x => x.id === p.id);
+            if (index !== -1) {
+                appState.products[index] = p;
+            } else {
+                appState.products.push(p);
+            }
+
+            saveState();
+            switchView('owner-products');
+            showToast('Produk berhasil disimpan!');
+        }
+
+        function deleteProduct(id) {
+            showCustomModal('Hapus Produk', 'Apakah kamu yakin ingin menghapus produk ini?', (res) => {
+                if(res) {
+                    appState.products = appState.products.filter(p => p.id !== id);
+                    saveState();
+                    renderApp();
+                    showToast('Produk berhasil dihapus.');
+                }
+            });
+        }
+
+        function renderOwnerOrders() {
+            const orders = appState.orders;
+
+            return `
+                <div class="fade-in space-y-4 pb-12">
+                    <div class="flex items-center justify-between">
+                        <button onclick="switchView('owner-dashboard')" class="flex items-center text-xs font-extrabold text-sky-700 cursor-pointer">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Dashboard
+                        </button>
+                    </div>
+                    <h2 class="text-base font-black text-slate-900 px-1">Kelola & Verifikasi Pesanan</h2>
+
+                    <div class="space-y-3">
+                        ${orders.length === 0 ? `<div class="text-center py-8 text-xs text-slate-400">Belum ada pesanan masuk.</div>` : orders.map(o => `
+                            <div class="bg-white/95 backdrop-blur rounded-3xl p-4 border-2 border-sky-100 shadow-sm space-y-3">
+                                <div class="flex justify-between items-start border-b border-sky-100 pb-2">
+                                    <div>
+                                        <span class="text-[10px] font-black text-sky-700">${o.id} • ${o.date}</span>
+                                        <h4 class="font-black text-slate-900 text-xs">${o.productName} (${o.variant}) x${o.quantity}</h4>
+                                        <p class="text-[11px] text-slate-600 mt-0.5">Pembeli: <span class="font-bold text-slate-900">${o.buyerName}</span> (${o.buyerPhone})</p>
+                                    </div>
+                                    <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                        o.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : o.status === 'Diproses' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                                    }">
+                                        ${o.status}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs font-black text-sky-700">
+                                    <span>Total: Rp ${o.total.toLocaleString('id-ID')} (${o.paymentMethod})</span>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Catatan Pengiriman / Data Akun:</label>
+                                    <input type="text" id="note_${o.id}" value="${o.deliveryNote || ''}" placeholder="Masukkan data akun..." class="w-full bg-slate-50 border border-sky-200 rounded-xl py-2 px-3 text-xs font-semibold focus:outline-none focus:border-sky-500 mb-2">
+                                    <div class="flex gap-1.5">
+                                        <button onclick="updateOrderStatus('${o.id}', 'Diproses')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-xl text-[10px] cursor-pointer">Proses</button>
+                                        <button onclick="updateOrderStatus('${o.id}', 'Selesai')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-[10px] cursor-pointer">Selesai ✨</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const order = appState.orders.find(o => o.id === orderId);
+            if (order) {
+                const noteInput = document.getElementById(`note_${orderId}`);
+                if (noteInput) order.deliveryNote = noteInput.value.trim();
+                order.status = newStatus;
+                saveState();
+                renderApp();
+                showToast(`Status pesanan ${orderId} diubah menjadi ${newStatus}`);
+            }
+        }
+
+        function renderOwnerSettings() {
+            const s = appState.settings;
+
+            return `
+                <div class="fade-in space-y-4 max-w-md mx-auto pb-16">
+                    <button onclick="switchView('owner-dashboard')" class="flex items-center text-xs font-extrabold text-sky-700 cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Dashboard
+                    </button>
+
+                    <div class="bg-white/95 backdrop-blur rounded-3xl p-5 border-2 border-sky-100 shadow-sm space-y-3.5">
+                        <h3 class="font-black text-slate-900 text-sm border-b border-sky-100 pb-2">Pengaturan Toko, Logo & QRIS</h3>
+                        
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Nama Toko</label>
+                                <input type="text" id="setStoreName" value="${s.storeName}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Upload Logo Toko (Dari Galeri HP/PC)</label>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-16 h-16 bg-sky-50 rounded-2xl border border-sky-200 overflow-hidden flex items-center justify-center">
+                                        ${s.storeLogo ? `<img id="storeLogoPreviewImg" src="${s.storeLogo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-store text-sky-400 text-xl"></i>`}
+                                    </div>
+                                    <label class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-800 text-center py-2.5 rounded-2xl font-bold cursor-pointer border border-sky-300 transition-all text-xs">
+                                        <i class="fa-solid fa-upload"></i> Pilih Logo dari Galeri
+                                        <input type="file" accept="image/*" onchange="handleStoreLogoUpload(event)" class="hidden">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Nama Owner</label>
+                                <input type="text" id="setOwnerName" value="${s.ownerName}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Nomor WhatsApp Owner (628xxx)</label>
+                                <input type="text" id="setOwnerPhone" value="${s.ownerPhone}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Upload Gambar QRIS (Dari Galeri HP/PC)</label>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-16 h-16 bg-sky-50 rounded-2xl border border-sky-200 overflow-hidden flex items-center justify-center">
+                                        ${s.qrisImage ? `<img id="qrisPreviewImg" src="${s.qrisImage}" class="w-full h-full object-contain">` : `<i class="fa-solid fa-qrcode text-sky-400 text-xl"></i>`}
+                                    </div>
+                                    <label class="flex-1 bg-sky-100 hover:bg-sky-200 text-sky-800 text-center py-2.5 rounded-2xl font-bold cursor-pointer border border-sky-300 transition-all text-xs">
+                                        <i class="fa-solid fa-upload"></i> Pilih QRIS dari Galeri
+                                        <input type="file" accept="image/*" onchange="handleQrisUpload(event)" class="hidden">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Judul Banner Toko</label>
+                                <input type="text" id="setBannerTitle" value="${s.bannerTitle}" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-semibold focus:outline-none focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Template Format Pesanan WhatsApp</label>
+                                <textarea id="setOrderFormat" rows="5" class="w-full bg-slate-50 border-2 border-sky-200 rounded-2xl py-2.5 px-3.5 font-mono text-[11px] focus:outline-none focus:border-sky-500">${s.orderFormatTemplate}</textarea>
+                            </div>
+                        </div>
+
+                        <button onclick="saveOwnerSettings()" class="w-full pastel-gradient-bg text-white font-black py-3 rounded-2xl shadow-md text-xs mt-3 cursor-pointer">Simpan Pengaturan ✨</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleStoreLogoUpload(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    appState.settings.storeLogo = evt.target.result;
+                    const preview = document.getElementById('storeLogoPreviewImg');
+                    if (preview) preview.src = evt.target.result;
+                    showToast('Logo toko berhasil di-upload!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleQrisUpload(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    appState.settings.qrisImage = evt.target.result;
+                    const preview = document.getElementById('qrisPreviewImg');
+                    if (preview) preview.src = evt.target.result;
+                    showToast('QRIS dari galeri berhasil di-upload!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveOwnerSettings() {
+            const s = appState.settings;
+            s.storeName = document.getElementById('setStoreName').value.trim() || DEFAULT_SETTINGS.storeName;
+            s.ownerName = document.getElementById('setOwnerName').value.trim() || DEFAULT_SETTINGS.ownerName;
+            s.ownerPhone = document.getElementById('setOwnerPhone').value.trim() || DEFAULT_SETTINGS.ownerPhone;
+            s.bannerTitle = document.getElementById('setBannerTitle').value.trim() || DEFAULT_SETTINGS.bannerTitle;
+            s.orderFormatTemplate = document.getElementById('setOrderFormat').value.trim() || DEFAULT_SETTINGS.orderFormatTemplate;
+
+            saveState();
+            updateHeaderBranding();
+            switchView('owner-dashboard');
+            showToast('Pengaturan toko berhasil disimpan!');
+        }
+
+        // Robust startup check for all environments
+        function initApp() {
+            try {
+                renderApp();
+                updateHeaderBranding();
+            } catch (err) {
+                console.error("App Initialization Error:", err);
+                const container = document.getElementById('appContainer');
+                if (container) {
+                    container.innerHTML = `<div class="p-8 text-center text-red-600 font-bold">Gagal memuat aplikasi. Mohon refresh halaman.<br><span class="text-xs text-slate-500">${err.message}</span></div>`;
+                }
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
